@@ -1,0 +1,47 @@
+.preview{
+
+}
+
+.page{
+  display: flex;
+  flex-direction: column;
+}
+
+.subtitle {
+  font-family: var(--heading);
+  font-weight: 600;
+  letter-spacing: -0.24px;
+} 
+
+.preview{
+  width: 25%;
+  height: 8rem;
+  border: 1px solid var(--border);
+  color: white;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 0.5rem;
+  cursor: pointer;
+  background-color: var(--accent-bg);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.option{
+  flex: 1;
+  text-align: center;
+  border-radius: 10px;
+  background-color: rgba(106, 194, 106, 0.578);
+  padding: 5px 0px;
+  margin: 0px 5px;
+}
+
+.lables{
+  flex: 1;
+  font-size: 12px;
+  text-align: center;
+  border-radius: 10px;
+  color: var(--text-h);
+  margin: 0px 5px;
+}
