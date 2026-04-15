@@ -1,10 +1,28 @@
 .preview{
 
 }
-
+h2{
+  margin: 0;
+}
 .page{
   display: flex;
   flex-direction: column;
+}
+.logo{
+  display: inline;
+  font-family: var(--heading);
+  letter-spacing: -0.24px;
+}
+
+.header{
+  width: 70%;
+  margin: 0px auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+
 }
 
 .subtitle {
@@ -44,4 +62,23 @@
   border-radius: 10px;
   color: var(--text-h);
   margin: 0px 5px;
+}
+
+.market{
+  display: flex;
+  flex-direction: column;
+  height: 50vh;
+  background-color: var(--social-bg);
+  margin: 20px;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.tag{
+  display: inline-block;
+  background-color: var(--accent-bg);
+  color: var(--text-h);
+  padding: 0px 6px;
+  border-radius: 4px;
+  font-size: 12px;
 }

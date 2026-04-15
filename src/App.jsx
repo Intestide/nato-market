@@ -12,7 +12,6 @@ function Dashboard() {
   return (
     <>
       <div className="page">
-        <h2 className="heading">Dashboard</h2>
         <div className="pofile">
           <div className="User">{name}</div>
         </div>
@@ -33,24 +32,28 @@ function Store() {
         id: 0,
         title: "Will shit go down?",
         type: "simple",
+        tags: ["anal", "shit"],
         prices: ["0.50", "0.50"],
       },
       {
         id: 1,
         title: "Will the sun rise tomorrow?",
         type: "simple",
+        tags: ["sports", "racism"],
         prices: ["0.50", "0.50"],
       },
       {
         id: 2,
         title: "Is the sky blue?",
         type: "simple",
+        tags: ["gay", "politics"],
         prices: ["0.50", "0.50"],
       },
       {
         id: 3,
         title: "how fast does water flow downhill?",
         type: "advanced",
+        tags: ["science", "physics"],
         options: ["10km/h", "20km/h", "30km/h"],
         prices: ["0.50", "0.50", "0.50"],
       },
@@ -60,8 +63,7 @@ function Store() {
   return (
     <>
       <div className="page">
-        <h2 className="heading">Store</h2>
-        {id && <Market market={data.find((item) => item.id === id)} onClose={() => setId(null)} />}
+        {id !== null && <Market market={data.find((item) => item.id === id)} onClose={() => setId(null)} />}
         <div className="subtitle">All Markets</div>
         <div style={{ display: "flex" }}>
           {data.map((item) => (
@@ -117,30 +119,47 @@ function Preview({ title, open, market }) {
 }
 
 function Market({ market, onClose }) {
-  useEffect(() => {
+  useEffect(() => { 
+    console.log(market);
     //fetch market details using id
   }, );
   return (
     <>
       <div className="market">
-        <h2 className="heading">{market.title}</h2>
-        <p>Market details... {market.id}</p>
-        <button style={{ float: "right" }} className="btn" onClick={onClose}>
-          Close
-        </button>
+        <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: "20px"}}>
+          <div style={{width: "56px", height: "56px", flexShrink: 0,borderRadius: "10px", background: "var(--accent-bg)"}}>
+            <img src={`https://avatars.dicebear.com/api/identicon/${market.id}.svg`}style={{width: "100%", height: "100%"}} />
+          </div>
+          <div style={{display: "flex", flexDirection: "column", flex: 1}}>
+            <h2 className="heading">{market.title} </h2>
+            <div style={{display: "flex", flexDirection: "row", gap: "10px", alignItems: "center"}}>
+              <span style={{fontSize: "15px", fontFamily: "var(--mono)"}}>#{market.id.toString().padStart(8, "0")}</span>
+              <span style={{fontSize: "15px", display: "flex", flexDirection: "row", gap: "5px"}}>
+                {market.tags?.map((tag) => (
+                  <span key={tag} className="tag">{tag}</span>
+                ))}
+              </span>
+            </div>
+          </div>
+          <button style={{}} className="btn" onClick={onClose}>Close</button>
+        
+        </div>
       </div>
     </>
   );
 }
 
 function App() {
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState("Store");
 
   return (
     <>
       <div className="header">
-        <button onClick={() => setPage("dashboard")}>Dashboard</button>
-        <button onClick={() => setPage("Store")}>Store</button>
+        <h1 className="logo" >Thing</h1>
+        <div></div>
+        <input style={{flex:2, margin: "auto", padding: "10px"}} type="text" name="" id="" placeholder="Search markets..."/>
+        <button style={{margin: "auto", padding: "10px 20px"}} onClick={() => setPage("dashboard")}>Dashboard</button>
+        <button style={{margin: "auto", padding: "10px 20px"}} onClick={() => setPage("Store")}>Store</button>
       </div>
       {page === "dashboard" && <Dashboard />}
       {page === "Store" && <Store />}
