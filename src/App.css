@@ -32,13 +32,12 @@ h2{
 } 
 
 .preview{
-  width: 25%;
+  flex: 0 0 calc(25% - (3 * 20px) / 4);
   height: 8rem;
-  border: 1px solid var(--border);
+  /* border: 1px solid var(--border); */
   color: white;
   border-radius: 4px;
   padding: 10px;
-  margin: 0.5rem;
   cursor: pointer;
   background-color: var(--accent-bg);
   box-shadow: var(--shadow);
@@ -50,7 +49,7 @@ h2{
   flex: 1;
   text-align: center;
   border-radius: 10px;
-  background-color: rgba(106, 194, 106, 0.578);
+  background-color: #4353b993;
   padding: 5px 0px;
   margin: 0px 5px;
 }
