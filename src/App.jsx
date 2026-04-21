@@ -80,74 +80,77 @@ function Store() {
 
   useEffect(() => {
     //fetch all markets
-    setData([
-      {
-        id: 0,
-        title: "are you constipated?",
-        type: "simple",
-        tags: ["orphans", "what"],
-        prices: [1.0, 0.0],
-      },
-      {
-        id: 1,
-        title: "Will the sun rise tomorrow?",
-        type: "simple",
-        tags: ["sports", "racism"],
-        prices: [0.0, 1.0],
-      },
-      {
-        id: 2,
-        title: "Is the sky blue?",
-        type: "simple",
-        tags: ["gay", "politics"],
-        prices: [0.5, 0.5],
-      },
-      {
-        id: 3,
-        title: "how fast does water flow downhill?",
-        type: "advanced",
-        tags: ["science", "physics"],
-        options: ["10km/h", "20km/h", "30km/h"],
-        prices: [0.5, 0.5, 0.5],
-      },
-      {
-        id: 4,
-        title: "is eric wong drop as a child?",
-        type: "simple",
-        tags: ["transgender", "based"],
-        prices: [0.75, 0.25],
-      },
-      {
-        id: 5,
-        title: "Will Bitcoin reach $100k by end of year?",
-        type: "simple",
-        tags: ["crypto", "finance"],
-        prices: [0.65, 0.35],
-      },
-      {
-        id: 6,
-        title: "Who will win the next election?",
-        type: "advanced",
-        tags: ["politics"],
-        options: ["Candidate A", "Candidate B", "Candidate C"],
-        prices: [0.4, 0.35, 0.25],
-      },
-      {
-        id: 7,
-        title: "Will it rain tomorrow?",
-        type: "simple",
-        tags: ["weather"],
-        prices: [0.3, 0.7],
-      },
-      {
-        id: 8,
-        title: "What will be the temperature high?",
-        type: "advanced",
-        tags: ["weather", "science"],
-        options: ["Below 60°F", "60-75°F", "Above 75°F"],
-        prices: [0.2, 0.5, 0.3],
-      },
-    ]);
+    // setData([
+    //   {
+    //     id: 0,
+    //     title: "are you constipated?",
+    //     tags: ["orphans", "what"],
+    //     prices: [1.0, 0.0],
+    //   },
+    //   {
+    //     id: 1,
+    //     title: "Will the sun rise tomorrow?",
+    //     type: "simple",
+    //     tags: ["sports", "racism"],
+    //     prices: [0.0, 1.0],
+    //   },
+    //   {
+    //     id: 2,
+    //     title: "Is the sky blue?",
+    //     type: "simple",
+    //     tags: ["gay", "politics"],
+    //     prices: [0.5, 0.5],
+    //   },
+    //   {
+    //     id: 3,
+    //     title: "how fast does water flow downhill?",
+    //     type: "advanced",
+    //     tags: ["science", "physics"],
+    //     options: ["10km/h", "20km/h", "30km/h"],
+    //     prices: [0.5, 0.5, 0.5],
+    //   },
+    //   {
+    //     id: 4,
+    //     title: "is eric wong drop as a child?",
+    //     type: "simple",
+    //     tags: ["transgender", "based"],
+    //     prices: [0.75, 0.25],
+    //   },
+    //   {
+    //     id: 5,
+    //     title: "Will Bitcoin reach $100k by end of year?",
+    //     type: "simple",
+    //     tags: ["crypto", "finance"],
+    //     prices: [0.65, 0.35],
+    //   },
+    //   {
+    //     id: 6,
+    //     title: "Who will win the next election?",
+    //     type: "advanced",
+    //     tags: ["politics"],
+    //     options: ["Candidate A", "Candidate B", "Candidate C"],
+    //     prices: [0.4, 0.35, 0.25],
+    //   },
+    //   {
+    //     id: 7,
+    //     title: "Will it rain tomorrow?",
+    //     type: "simple",
+    //     tags: ["weather"],
+    //     prices: [0.3, 0.7],
+    //   },
+    //   {
+    //     id: 8,
+    //     title: "What will be the temperature high?",
+    //     type: "advanced",
+    //     tags: ["weather", "science"],
+    //     options: ["Below 60°F", "60-75°F", "Above 75°F"],
+    //     prices: [0.2, 0.5, 0.3],
+    //   },
+    // ]);
+    fetch('/api/hello')
+      .then(response => response.json())
+      .then(json => setData(json.message))
+      .catch(err => console.error("Fetch error:", err))
   }, []);
 
   return (
@@ -160,7 +163,7 @@ function Store() {
           />
         )}
         <div className="subtitle">All Markets</div>
-        <div style={{display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "20px"}}>
+        {data ? (<div style={{display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "20px"}}>
           {data.map((item) => (
             <Preview
               title={item.title}
@@ -169,7 +172,8 @@ function Store() {
               market={item}
             />
           ))}
-        </div>
+        </div>) : "waiting "
+        }
       </div>
     </>
   );
@@ -177,12 +181,12 @@ function Store() {
 function Preview({ title, open, market }) {
   const [type, setType] = useState("");
   useEffect(() => {
-    setType(market.type);
+
   }, [market]);
   return (
     <>
       <div className="preview" onClick={() => open()}>
-        {type == "simple" && (
+        {market.shares.length == 2 ? (
           <>
             <div
               style={{
@@ -192,7 +196,7 @@ function Preview({ title, open, market }) {
               }}
             >
               <div style={{ fontWeight: 400, width: "100%" }}>{title}</div>
-              <Graph values={market.prices} />
+              <Graph values={market.shares[0].prices} />
             </div>
             <div style={{ display: "flex", flexDirection: "row" }}>
               <div className="option" style={{ backgroundColor: "#4CC790" }}>
@@ -203,16 +207,15 @@ function Preview({ title, open, market }) {
               </div>
             </div>
           </>
-        )}
-        {type == "advanced" && (
+        ) : (
           <>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ fontWeight: 400 }}>{title}</div>
             </div>
             <div style={{ display: "flex", flexDirection: "row" }}>
-              {market.options?.map((option) => (
-                <div className="option" key={option}>
-                  {option}
+              {market.shares?.map((share) => (
+                <div className="option" key={share}>
+                  {share.name}
                 </div>
               ))}
             </div>
