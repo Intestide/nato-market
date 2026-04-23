@@ -40,5 +40,5 @@ public class Market {
   public long getId() {return id;}
   public String getTitle() {return title;}
   public List<String> getTags() {return tags;} 
-  public List<Share> getShares() {return shares;s}
+  public List<Share> getShares() {return shares;}
 }

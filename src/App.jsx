@@ -1,8 +1,8 @@
 /* eslint-disable no-unused-vars */
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import "./App.css";
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 function Login({ onSuccess }) {
   const [userName, setUsername] = useState("");
@@ -79,80 +79,11 @@ function Store() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    //fetch all markets
-    // setData([
-    //   {
-    //     id: 0,
-    //     title: "are you constipated?",
-    //     tags: ["orphans", "what"],
-    //     prices: [1.0, 0.0],
-    //   },
-    //   {
-    //     id: 1,
-    //     title: "Will the sun rise tomorrow?",
-    //     type: "simple",
-    //     tags: ["sports", "racism"],
-    //     prices: [0.0, 1.0],
-    //   },
-    //   {
-    //     id: 2,
-    //     title: "Is the sky blue?",
-    //     type: "simple",
-    //     tags: ["gay", "politics"],
-    //     prices: [0.5, 0.5],
-    //   },
-    //   {
-    //     id: 3,
-    //     title: "how fast does water flow downhill?",
-    //     type: "advanced",
-    //     tags: ["science", "physics"],
-    //     options: ["10km/h", "20km/h", "30km/h"],
-    //     prices: [0.5, 0.5, 0.5],
-    //   },
-    //   {
-    //     id: 4,
-    //     title: "is eric wong drop as a child?",
-    //     type: "simple",
-    //     tags: ["transgender", "based"],
-    //     prices: [0.75, 0.25],
-    //   },
-    //   {
-    //     id: 5,
-    //     title: "Will Bitcoin reach $100k by end of year?",
-    //     type: "simple",
-    //     tags: ["crypto", "finance"],
-    //     prices: [0.65, 0.35],
-    //   },
-    //   {
-    //     id: 6,
-    //     title: "Who will win the next election?",
-    //     type: "advanced",
-    //     tags: ["politics"],
-    //     options: ["Candidate A", "Candidate B", "Candidate C"],
-    //     prices: [0.4, 0.35, 0.25],
-    //   },
-    //   {
-    //     id: 7,
-    //     title: "Will it rain tomorrow?",
-    //     type: "simple",
-    //     tags: ["weather"],
-    //     prices: [0.3, 0.7],
-    //   },
-    //   {
-    //     id: 8,
-    //     title: "What will be the temperature high?",
-    //     type: "advanced",
-    //     tags: ["weather", "science"],
-    //     options: ["Below 60°F", "60-75°F", "Above 75°F"],
-    //     prices: [0.2, 0.5, 0.3],
-    //   },
-    // ]);
-    fetch('/api/hello')
-      .then(response => response.json())
-      .then(json => setData(json.message))
-      .catch(err => console.error("Fetch error:", err))
+    fetch("/api/markets")
+      .then((response) => response.json())
+      .then((json) => setData(json))
+      .catch((err) => console.error("Fetch error:", err));
   }, []);
-
   return (
     <>
       <div className="page">
@@ -163,26 +94,36 @@ function Store() {
           />
         )}
         <div className="subtitle">All Markets</div>
-        {data ? (<div style={{display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "20px"}}>
-          {data.map((item) => (
-            <Preview
-              title={item.title}
-              open={() => setId(item.id)}
-              key={item.id}
-              market={item}
-            />
-          ))}
-        </div>) : "waiting "
-        }
+        <div
+          style={{
+            margin: "20px",
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: "20px",
+          }}
+        >
+          {data ? (
+            <>
+              {data.map((item) => (
+                <Preview
+                  title={item.title}
+                  open={() => setId(item.id)}
+                  key={item.id}
+                  market={item}
+                />
+              ))}
+            </>
+          ) : (
+            "waiting ..."
+          )}
+        </div>
       </div>
     </>
   );
 }
 function Preview({ title, open, market }) {
   const [type, setType] = useState("");
-  useEffect(() => {
-
-  }, [market]);
   return (
     <>
       <div className="preview" onClick={() => open()}>
@@ -196,7 +137,7 @@ function Preview({ title, open, market }) {
               }}
             >
               <div style={{ fontWeight: 400, width: "100%" }}>{title}</div>
-              <Graph values={market.shares[0].prices} />
+              <Graph value={market.shares[0].price} />
             </div>
             <div style={{ display: "flex", flexDirection: "row" }}>
               <div className="option" style={{ backgroundColor: "#4CC790" }}>
@@ -213,7 +154,14 @@ function Preview({ title, open, market }) {
               <div style={{ fontWeight: 400 }}>{title}</div>
             </div>
             <div style={{ display: "flex", flexDirection: "row" }}>
-              {market.shares?.map((share) => (
+              {market.shares.map((share) => (
+                <div className="option" key={share}>
+                  {share.price}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", flexDirection: "row" }}>
+              {market.shares.map((share) => (
                 <div className="option" key={share}>
                   {share.name}
                 </div>
@@ -225,7 +173,7 @@ function Preview({ title, open, market }) {
     </>
   );
 }
-function Graph({ values }) {
+function Graph({ value }) {
   const width = 120;
   const height = 80;
   useEffect(() => {}, []);
@@ -248,7 +196,7 @@ function Graph({ values }) {
   return (
     <svg width={width} height={height} style={{ flexShrink: 0 }}>
       <path
-        d={arc(width / 2, height / 2, 35, 0, 180 - values[0] * 180)}
+        d={arc(width / 2, height / 2, 35, 0, 180 - value * 180)}
         style={{
           fill: "none",
           stroke: "#c74c4c",
@@ -257,7 +205,7 @@ function Graph({ values }) {
         }}
       />
       <path
-        d={arc(width / 2, height / 2, 35, 180, 180 - values[0] * 180)}
+        d={arc(width / 2, height / 2, 35, 180, 180 - value * 180)}
         style={{
           fill: "none",
           stroke: "#4CC790",
@@ -270,10 +218,10 @@ function Graph({ values }) {
         y={height / 2 + 5}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill={values[0] >= values[1] ? "#4CC790" : "#c74c4c"}
+        fill={value >= 0.5 ? "#4CC790" : "#c74c4c"}
         style={{ fontSize: "16px", fontWeight: "bold" }}
       >
-        {Math.round(values[0] * 100)}%
+        {Math.round(value * 100)}%
       </text>
     </svg>
   );
@@ -281,8 +229,6 @@ function Graph({ values }) {
 
 function Market({ market, onClose }) {
   useEffect(() => {
-    console.log(market);
-    //fetch market details using id
   });
   return (
     <>
@@ -306,7 +252,7 @@ function Market({ market, onClose }) {
             }}
           >
             <img
-              src={`https://avatars.dicebear.com/api/identicon/${market.id}.svg`}
+              src={`/market/${market.id}.svg`}
               style={{ width: "100%", height: "100%" }}
             />
           </div>
@@ -331,6 +277,7 @@ function Market({ market, onClose }) {
                   gap: "5px",
                 }}
               >
+                
                 {market.tags?.map((tag) => (
                   <span key={tag} className="tag">
                     {tag}
@@ -343,11 +290,33 @@ function Market({ market, onClose }) {
             Close
           </button>
         </div>
+        <div style={{display: "flex", flexDirection: "row", height: "100%"}}>
+          <div style={{flex: "60%"}}>
+            <Chart />
+          </div>
+          <div style={{flex: "40%"}}>
+            <Trade />
+          </div>
+        </div>
       </div>
     </>
   );
 }
+function Trade(){
+  const [buyMode, setMode] = useState(true)
+  return(
+    <>
+      <div onClick={() => setMode(!buyMode)}>{buyMode? "Buy" : "Sell"}</div>
+    </>
+  );
+}
 
+function Chart(){
+  return(
+    <>
+    </>  
+  );
+}
 function App() {
   const [page, setPage] = useState("Store");
 

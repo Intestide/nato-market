@@ -22,40 +22,23 @@ public class BackendApplication {
 	@Bean
 	public CommandLineRunner demo(MarketRepository repository) {
 		return (args) -> {
+			// repository.save(new Market("question", 0.2,0.8));
+			// Market b = new Market();
+			// b.setTitle("question 2");
+			// b.setTags(List.of("fucker", "gay"));
+			// b.setShare(List.of(new Share("one", 0.2, b), new Share("two", 0.2,b), new Share("three", 0.6, b)));
 			
-			repository.deleteAll();
-			
-			repository.save(new Market("question", 0.2,0.8));
-			Market b = new Market();
-			b.setTitle("question 2");
-			b.setTags(List.of("fucker", "gay"));
-			b.setShare(List.of(new Share("one", 0.2, b), new Share("two", 0.2,b), new Share("three", 0.6, b)));
-			
-			repository.save(b);
+			// repository.save(b);
 
 
-			// fetch all customers
-			System.out.println("findAll(): ");
-			System.out.println("-------------------------------");
-			repository.findAll().forEach(e -> {
-				System.out.println(e.toString());
-			});
-			System.out.println("");
-
-			// fetch an individual customer by ID
-			// Customer customer = repository.findById(1L);
-			// logger.info("Customer found with findById(1L):");
-			// logger.info("--------------------------------");
-			// logger.info(customer.toString());
-			// logger.info("");
-
-			// // fetch customers by last name
-			// logger.info("Customer found with findByLastName('Bauer'):");
-			// logger.info("--------------------------------------------");
-			// repository.findByLastName("Bauer").forEach(bauer -> {
-			// 	logger.info(bauer.toString());
+			// // fetch all customers
+			// System.out.println("findAll(): ");
+			// System.out.println("-------------------------------");
+			// repository.findAll().forEach(e -> {
+			// 	System.out.println(e.toString());
 			// });
-			// logger.info("");
+			// System.out.println("");
+
 		};
 	}
 }
