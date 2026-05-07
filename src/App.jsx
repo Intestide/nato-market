@@ -7,18 +7,59 @@ import { useGSAP } from "@gsap/react";
 function Login({ onSuccess }) {
   const [userName, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  function checkLogin() {
-    //check login details
+  const [isSignup, setIsSignup] = useState(false);
 
-    // eslint-disable-next-line no-constant-condition
-    if (true) {
-      onSuccess({
-        name: userName,
+  async function handleSubmit() {
+    try {
+      if (isSignup) {
+        const response = await fetch("http://localhost:8080/api/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username: userName, password }),
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        alert("Signup successful! Please login.");
+        setIsSignup(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        credentials: "include",
+        body: new URLSearchParams({
+          username: userName,
+          password,
+        }),
       });
-    } else {
-      alert("login failed.");
+
+      if (!response.ok) {
+        throw new Error("Invalid login credentials");
+      }
+
+      const userResponse = await fetch("http://localhost:8080/api/user", {
+        credentials: "include",
+      });
+
+      if (!userResponse.ok) {
+        throw new Error("Unable to load user after login");
+      }
+
+      const user = await userResponse.json();
+      onSuccess(user);
+    } catch (error) {
+      alert(error.message);
     }
   }
+
   return (
     <>
       <div
@@ -26,6 +67,7 @@ function Login({ onSuccess }) {
         style={{ justifyContent: "center", alignItems: "center" }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <h2>{isSignup ? "Sign Up" : "Login"}</h2>
           <input
             type="text"
             placeholder="Username"
@@ -42,10 +84,24 @@ function Login({ onSuccess }) {
           />
           <button
             className="btn"
-            onClick={checkLogin}
+            onClick={handleSubmit}
             style={{ padding: "10px 20px", fontSize: "16px" }}
           >
-            Login
+            {isSignup ? "Sign Up" : "Login"}
+          </button>
+          <button
+            className="btn"
+            onClick={() => setIsSignup(!isSignup)}
+            style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "#ccc" }}
+          >
+            {isSignup ? "Already have an account? Login" : "Need an account? Sign Up"}
+          </button>
+          <button
+            className="btn"
+            onClick={() => onSuccess(null)} // Browse without login
+            style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "#ddd" }}
+          >
+            Browse Without Login
           </button>
         </div>
       </div>
@@ -53,37 +109,35 @@ function Login({ onSuccess }) {
   );
 }
 
-function Dashboard() {
-  const [account, setAccount] = useState(null);
-
-  useEffect(() => {
-    //load account
-  }, []);
-  if (!account) {
-    return <Login onSuccess={(acc) => setAccount(acc)} />;
-  }
+function Dashboard({ account, onLogout }) {
   return (
     <>
       <div className="page">
         <div className="pofile">
           <div className="User">{account.name}</div>
+          <button className="btn" onClick={onLogout} style={{ marginLeft: "20px" }}>
+            Logout
+          </button>
         </div>
-        <div className="bets"></div>
+        <div className="bets">Welcome back, {account.name}! Use the store to browse markets.</div>
       </div>
     </>
   );
 }
 
-function Store() {
+function Store({ isLoggedIn }) {
   const [id, setId] = useState(null);
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch("/api/markets")
+    fetch("http://localhost:8080/api/markets", {
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((json) => setData(json))
       .catch((err) => console.error("Fetch error:", err));
   }, []);
+
   return (
     <>
       <div className="page">
@@ -91,6 +145,7 @@ function Store() {
           <Market
             market={data.find((item) => item.id === id)}
             onClose={() => setId(null)}
+            isLoggedIn={isLoggedIn}
           />
         )}
         <div className="subtitle">All Markets</div>
@@ -111,6 +166,7 @@ function Store() {
                   open={() => setId(item.id)}
                   key={item.id}
                   market={item}
+                  isLoggedIn={isLoggedIn}
                 />
               ))}
             </>
@@ -227,7 +283,7 @@ function Graph({ value }) {
   );
 }
 
-function Market({ market, onClose }) {
+function Market({ market, onClose, isLoggedIn }) {
   useEffect(() => {
   });
   return (
@@ -295,17 +351,21 @@ function Market({ market, onClose }) {
             <Chart />
           </div>
           <div style={{flex: "40%"}}>
-            <Trade />
+            <Trade isLoggedIn={isLoggedIn} />
           </div>
         </div>
       </div>
     </>
   );
 }
-function Trade(){
+function Trade({ isLoggedIn }){
   const [buyMode, setMode] = useState(true)
+  if (!isLoggedIn) {
+    return <div>Please login to trade.</div>;
+  }
   return(
     <>
+      <span>Buy</span><span>Sell</span>
       <div onClick={() => setMode(!buyMode)}>{buyMode? "Buy" : "Sell"}</div>
     </>
   );
@@ -318,7 +378,47 @@ function Chart(){
   );
 }
 function App() {
+  const [account, setAccount] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState("Store");
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const response = await fetch("http://localhost:8080/api/user", {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          setAccount(null);
+          return;
+        }
+        const user = await response.json();
+        setAccount(user);
+      } catch (error) {
+        console.error("Failed to check auth:", error);
+        setAccount(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadUser();
+  }, []);
+
+  async function handleLogout() {
+    await fetch("http://localhost:8080/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    setAccount(null);
+  }
+
+  if (loading) {
+    return <div className="page">Loading...</div>;
+  }
+
+  if (account === undefined) { // Not checked yet, but for now, if null, show login
+    return <Login onSuccess={setAccount} />;
+  }
 
   return (
     <>
@@ -328,16 +428,31 @@ function App() {
         <input
           style={{ flex: 2, margin: "auto", padding: "10px" }}
           type="text"
-          name=""
-          id=""
           placeholder="Search markets..."
         />
-        <button
-          style={{ margin: "auto", padding: "10px 20px" }}
-          onClick={() => setPage("dashboard")}
-        >
-          Dashboard
-        </button>
+        {account ? (
+          <>
+            <button
+              style={{ margin: "auto", padding: "10px 20px" }}
+              onClick={() => setPage("dashboard")}
+            >
+              Dashboard
+            </button>
+            <button
+              style={{ margin: "auto", padding: "10px 20px" }}
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <button
+            style={{ margin: "auto", padding: "10px 20px" }}
+            onClick={() => setAccount(undefined)} // Go back to login
+          >
+            Login
+          </button>
+        )}
         <button
           style={{ margin: "auto", padding: "10px 20px" }}
           onClick={() => setPage("Store")}
@@ -345,8 +460,8 @@ function App() {
           Store
         </button>
       </div>
-      {page === "dashboard" && <Dashboard />}
-      {page === "Store" && <Store />}
+      {page === "dashboard" && account && <Dashboard account={account} onLogout={handleLogout} />}
+      {page === "Store" && <Store isLoggedIn={!!account} />}
     </>
   );
 }

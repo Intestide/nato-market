@@ -6,10 +6,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import club.biszweb.sap.backend.models.Market;
 import club.biszweb.sap.backend.models.Share;
+import club.biszweb.sap.backend.models.User;
 import club.biszweb.sap.backend.repositories.MarketRepository;
+import club.biszweb.sap.backend.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
@@ -20,8 +23,14 @@ public class BackendApplication {
 	}
 
 	@Bean
-	public CommandLineRunner demo(MarketRepository repository) {
+	public CommandLineRunner demo(MarketRepository repository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		return (args) -> {
+			// Seed default user if not exists
+			if (userRepository.findByUsername("user").isEmpty()) {
+				User defaultUser = new User("user", passwordEncoder.encode("password"), "USER");
+				userRepository.save(defaultUser);
+			}
+
 			// repository.save(new Market("question", 0.2,0.8));
 			// Market b = new Market();
 			// b.setTitle("question 2");
