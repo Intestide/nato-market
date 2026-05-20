@@ -26,6 +26,8 @@ h2{
 }
 
 .subtitle {
+  margin: 0px 10px ;
+  font-size: larger;
   font-family: var(--heading);
   font-weight: 600;
   letter-spacing: -0.24px;
@@ -43,6 +45,7 @@ h2{
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
+  /* border: var(--accent-border) 1px solid; */
 }
 
 .option{
@@ -66,6 +69,7 @@ h2{
 .market{
   display: flex;
   flex-direction: column;
+  gap: 10px;
   height: 50vh;
   background-color: var(--social-bg);
   margin: 20px;
@@ -80,4 +84,27 @@ h2{
   padding: 0px 6px;
   border-radius: 4px;
   font-size: 12px;
+}
+
+.trade-wrapper{
+  width: 100%;
+  height: 100%;
+  background-color: var(--alt-accent-bg);
+  padding: 10px;
+  border-radius: 8px;
+}
+.trade-btn {
+  background:none;
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 400;
+  padding: 2px 12px;
+
+}
+.trade-btn:hover{
+  cursor: pointer;
+}
+.active{
+  font-style: underline;
+  background-color: rgb(79, 79, 244);
 }

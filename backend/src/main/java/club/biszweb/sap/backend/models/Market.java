@@ -3,8 +3,6 @@ import jakarta.persistence.*;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 
 @Entity
 public class Market {
