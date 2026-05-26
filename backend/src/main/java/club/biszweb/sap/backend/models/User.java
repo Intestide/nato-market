@@ -1,5 +1,7 @@
 package club.biszweb.sap.backend.models;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +18,7 @@ public class User {
     private String password;
     private String email;
     private Role role;
+    private List<Position> positions; 
     private boolean enabled = true; //banned will be disabled
 
     @ManyToOne
@@ -51,4 +54,8 @@ public class User {
 
     public InvitationKey getInvitationKey() { return invitationKey; }
     public void setInvitationKey(InvitationKey invitationKey) { this.invitationKey = invitationKey; }
+
+    public List<Position> getPositions() { return positions; }
+    public void setPositions(List<Position> positions) { this.positions = positions; }
+    
 }
