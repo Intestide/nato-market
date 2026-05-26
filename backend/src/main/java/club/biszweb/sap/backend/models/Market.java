@@ -25,8 +25,11 @@ public class Market {
   }
 
   public Market(String title, List<Share> shares){
-
+    this.title = title;
+    this.shares = shares;
   }
+  public void setId(long id) {this.id = id;}
+  
 
 
   public void setTitle(String title) {this.title = title;}

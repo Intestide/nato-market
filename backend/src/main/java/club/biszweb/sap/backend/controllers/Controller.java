@@ -51,6 +51,6 @@ public class Controller {
   @DeleteMapping("/all")
   public ResponseEntity<String> clearDatabase() {
     repository.deleteAll();
-    return ResponseEntity.ok("fucked off.");
+    return ResponseEntity.ok("dead.");
   }
 }

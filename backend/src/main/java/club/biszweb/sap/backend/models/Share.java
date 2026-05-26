@@ -16,7 +16,7 @@ public class Share{
 
   @ManyToOne
   @JoinColumn(name = "market_id")
-  @JsonIgnore // Important: Prevents a recursive loop in JSON
+  @JsonIgnore
   private Market market;
 
   public Share() {}

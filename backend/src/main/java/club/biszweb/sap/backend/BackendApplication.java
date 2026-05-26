@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import club.biszweb.sap.backend.models.Role;
 import club.biszweb.sap.backend.models.User;
 import club.biszweb.sap.backend.repositories.MarketRepository;
 import club.biszweb.sap.backend.repositories.UserRepository;
@@ -22,7 +23,7 @@ public class BackendApplication {
 		return (args) -> {
 
 			if (userRepository.findByUsername("user").isEmpty()) {
-				User defaultUser = new User("user", passwordEncoder.encode("password"), "user@example.com", "USER");
+				User defaultUser = new User("user", passwordEncoder.encode("password"), "user@example.com", Role.USER);
 				userRepository.save(defaultUser);
 			}
 		};

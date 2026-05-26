@@ -130,6 +130,7 @@ function Store({ isLoggedIn }) {
     </>
   );
 }
+
 function Preview({ title, open, market }) {
   const [type, setType] = useState("");
   return (
@@ -175,6 +176,7 @@ function Preview({ title, open, market }) {
     </>
   );
 }
+
 function Graph({ value }) {
   const width = 120;
   const height = 80;
@@ -230,10 +232,10 @@ function Market({ market, onClose, isLoggedIn }) {
           </button>
         </div>
         <div style={{ display: "flex", flexDirection: "row", height: "100%" }}>
-          <div style={{ flex: "60%" }}>
+          <div style={{ flex: "75%" }}>
             <Chart />
           </div>
-          <div style={{ flex: "40%" }}>
+          <div style={{ flex: "25%" }}>
             <Trade isLoggedIn={isLoggedIn} market={market} />
           </div>
         </div>
@@ -241,6 +243,7 @@ function Market({ market, onClose, isLoggedIn }) {
     </>
   );
 }
+
 function Trade({ isLoggedIn, market }) {
   const [tradeMode, setMode] = useState(true);
   // if (!isLoggedIn) {
@@ -257,7 +260,27 @@ function Trade({ isLoggedIn, market }) {
             Sell
           </button>
         </div>
-        <div></div>
+        <div className="calculator" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+          {market.shares.map((share) => (
+            <div key={share.id} className="share" style={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
+              <div
+                style={{
+                  width: "100%",
+                  fontSize: "20px",
+                  paddingTop: "0.5rem",
+                  paddingBottom: "0.5rem",
+                  borderRadius: "0.5rem",
+                  textAlign: "center",
+                  borderColor: "#2563EB",
+                  color: "#ffffff",
+                  backgroundColor: "#3B82F6",
+                }}>
+                {share.name}
+              </div>
+              <input type="number" placeholder="Amount" />
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

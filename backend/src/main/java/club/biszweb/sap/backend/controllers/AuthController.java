@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import club.biszweb.sap.backend.models.InvitationKey;
+import club.biszweb.sap.backend.models.Role;
 import club.biszweb.sap.backend.models.User;
 import club.biszweb.sap.backend.repositories.UserRepository;
 import club.biszweb.sap.backend.services.InvitationKeyService;
@@ -57,13 +58,11 @@ public class AuthController {
 
         try {
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
-            );
+                    new UsernamePasswordAuthenticationToken(username, password));
             SecurityContextHolder.getContext().setAuthentication(auth);
             return ResponseEntity.ok(Map.of(
                     "message", "Login successful",
-                    "username", username
-            ));
+                    "username", username));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid username or password");
         }
@@ -96,8 +95,8 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Username already exists");
         }
 
-        User user = new User(username, passwordEncoder.encode(password), email, "USER");
-        user.setEnabled(true); // User is enabled immediately
+        User user = new User(username, passwordEncoder.encode(password), email, Role.USER);
+        user.setEnabled(true);
         userRepository.save(user);
 
         // Mark invitation key as used
@@ -116,7 +115,7 @@ public class AuthController {
         }
 
         User admin = userRepository.findByUsername(principal.getName()).orElse(null);
-        if (admin == null || !admin.getRole().equals("ADMIN")) {
+        if (admin == null || !admin.getRole().equals(Role.ADMIN)) {
             return ResponseEntity.status(403).body("Only admins can generate keys");
         }
 
@@ -124,9 +123,9 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "keyCode", key.getKeyCode(),
                 "id", key.getId(),
-                "createdAt", key.getCreatedAt().toString()
-        ));
+                "createdAt", key.getCreatedAt().toString()));
     }
+
     @PostMapping("/generate-referral-key")
     public ResponseEntity<?> generateReferralKey(Principal principal) {
         if (principal == null) {
@@ -142,8 +141,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "keyCode", key.getKeyCode(),
                 "id", key.getId(),
-                "createdAt", key.getCreatedAt().toString()
-        ));
+                "createdAt", key.getCreatedAt().toString()));
     }
 
     /**
