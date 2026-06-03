@@ -32,8 +32,8 @@ public class SecurityConfig {
         .cors(Customizer.withDefaults())
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/login", "/logout", "/api/login", "/api/logout", "/api/signup").permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/markets").permitAll() // Allow browsing markets without
-            .requestMatchers("/api/**").authenticated() // Require auth for other API calls (like trading)
+            .requestMatchers(HttpMethod.GET, "/api/markets/**").permitAll()
+            .requestMatchers("/api/**").authenticated()
             .anyRequest().permitAll())
         .formLogin(Customizer.withDefaults())
         .logout(Customizer.withDefaults());

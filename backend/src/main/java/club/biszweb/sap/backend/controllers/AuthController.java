@@ -97,10 +97,12 @@ public class AuthController {
 
         User user = new User(username, passwordEncoder.encode(password), email, Role.USER);
         user.setEnabled(true);
-        userRepository.save(user);
+        user.setBalance(0);
+        user = userRepository.save(user);
 
-        // Mark invitation key as used
-        invitationKeyService.validateAndUseKey(invitationKeyCode, user);
+        if (!invitationKeyService.validateAndUseKey(invitationKeyCode, user)) {
+            return ResponseEntity.badRequest().body("Invalid or already used invitation key");
+        }
 
         return ResponseEntity.ok("Signup successful! You can now login.");
     }

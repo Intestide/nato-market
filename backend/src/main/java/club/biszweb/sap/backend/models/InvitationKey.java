@@ -1,8 +1,18 @@
 package club.biszweb.sap.backend.models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class InvitationKey {
@@ -13,11 +23,17 @@ public class InvitationKey {
     @Column(unique = true, nullable = false)
     private String keyCode;
 
-    @ManyToOne
-    private User createdBy; // Admin who created the key
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
 
-    @ManyToOne
-    private ArrayList<User> usedBy=new ArrayList<>(); // User who used this key to sign up
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "invitation_key_user",
+        joinColumns = @JoinColumn(name = "invitation_key_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> usedBy = new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime lastUsedAt;
@@ -25,7 +41,8 @@ public class InvitationKey {
     @Column(nullable = false)
     private boolean isActive = true;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "referred_by_id")
     private User referredBy;
 
     public InvitationKey() {}
@@ -38,31 +55,79 @@ public class InvitationKey {
     }
 
     // Getters and setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getKeyCode() { return keyCode; }
-    public void setKeyCode(String keyCode) { this.keyCode = keyCode; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public User getCreatedBy() { return createdBy; }
-    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+    public String getKeyCode() {
+        return keyCode;
+    }
 
-    public ArrayList<User> getUsedBy() { return usedBy; }
-    public void addUsedBy(User user) { this.usedBy.add(user); }
+    public void setKeyCode(String keyCode) {
+        this.keyCode = keyCode;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public User getCreatedBy() {
+        return createdBy;
+    }
 
-    public LocalDateTime getLastUsedAt() { return lastUsedAt; }
-    public void setLastUsedAt(LocalDateTime lastUsedAt) { this.lastUsedAt = lastUsedAt; }
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
 
-    public boolean isActive() { return isActive; }
-    public void setActive(boolean active) { isActive = active; }
+    public List<User> getUsedBy() {
+        return usedBy;
+    }
 
-    public User getReferredBy() { return referredBy; }
-    public void setReferredBy(User referredBy) { this.referredBy = referredBy; }
+    public void setUsedBy(List<User> usedBy) {
+        this.usedBy = usedBy != null ? usedBy : new ArrayList<>();
+    }
+
+    public void addUsedBy(User user) {
+        if (usedBy == null) {
+            usedBy = new ArrayList<>();
+        }
+        usedBy.add(user);
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getLastUsedAt() {
+        return lastUsedAt;
+    }
+
+    public void setLastUsedAt(LocalDateTime lastUsedAt) {
+        this.lastUsedAt = lastUsedAt;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public User getReferredBy() {
+        return referredBy;
+    }
+
+    public void setReferredBy(User referredBy) {
+        this.referredBy = referredBy;
+    }
 
     public boolean isUsed() {
       return usedBy != null && !usedBy.isEmpty();
     }
 }
+

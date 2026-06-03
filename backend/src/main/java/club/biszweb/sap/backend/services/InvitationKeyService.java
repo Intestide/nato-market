@@ -1,5 +1,6 @@
 package club.biszweb.sap.backend.services;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.Optional;
 import java.util.List;
@@ -48,14 +49,13 @@ public class InvitationKeyService {
 
         InvitationKey key = keyOptional.get();
 
-        // Check if key is active and not already used
         if (!key.isActive()) {
             return false;
         }
 
-        // Use the key
         key.addUsedBy(user);
-        key.setLastUsedAt(java.time.LocalDateTime.now());
+        key.setLastUsedAt(LocalDateTime.now());
+        key.setActive(false);
         invitationKeyRepository.save(key);
 
         return true;
