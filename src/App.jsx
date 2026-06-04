@@ -32,11 +32,11 @@ function Login({ onSuccess }) {
         return;
       }
 
-      const response = await fetch("http://localhost:8080/login", {
+      const response = await fetch("http://localhost:8080/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: new URLSearchParams({ username: userName, password }),
+        body: JSON.stringify({ username: userName, password }),
       });
 
       if (!response.ok) {
@@ -87,13 +87,18 @@ function Dashboard({ account, onLogout }) {
   return (
     <>
       <div className="page">
-        <div className="pofile">
-          <div className="User">{account.name}</div>
-          <button className="btn" onClick={onLogout} style={{ marginLeft: "20px" }}>
+        <div className="pofile" style={{display: "flex", flexDirection:"row"}}>
+          <div className="subtitle" style={{flex : 1}}>
+            Profile
+          </div>
+          <button className="btn" onClick={onLogout} style={{ marginRight: "20px" }}>
             Logout
           </button>
         </div>
-        <div className="bets">Welcome back, {account.name}! Use the store to browse markets.</div>
+        <div className="bets">Welcome back, {account.name}.</div>
+        <div>
+
+        </div>
       </div>
     </>
   );
@@ -206,7 +211,9 @@ function Graph({ value }) {
 }
 
 function Market({ market, onClose, isLoggedIn }) {
-  useEffect(() => {});
+  useEffect(() => {
+    console.log(market);
+  });
   return (
     <>
       <div className="market">
@@ -298,6 +305,7 @@ function Loading() {
   const height = 400;
   const width = 300;
   const count = 25;
+  // eslint-disable-next-line react-hooks/purity
   const digits = useMemo(() => Array.from({ length: count }, () => Math.floor(Math.random() * 10)), [count]);
   const gap = (2 * Math.PI) / count;
   const centerX = 0;
@@ -365,6 +373,7 @@ function App() {
           return;
         }
         const user = await response.json();
+        console.log(user);
         setAccount(user);
       } catch (error) {
         console.error("Failed to check auth:", error);
@@ -377,7 +386,7 @@ function App() {
   }, []);
 
   async function handleLogout() {
-    await fetch("http://localhost:8080/logout", { method: "POST", credentials: "include" });
+    await fetch("http://localhost:8080/api/logout", { method: "POST", credentials: "include" });
     setAccount(null);
     toast.info("Logged out successfully");
   }
@@ -393,7 +402,9 @@ function App() {
   return (
     <>
       <div className="header">
-        <h1 className="logo">Thing</h1>
+        <h1 className="logo" onClick={() => setPage("debug")}>
+          Thing
+        </h1>
 
         <input style={{ flex: 2, margin: "auto", padding: "10px" }} type="text" placeholder="Search markets..." />
         {account ? (
@@ -416,7 +427,7 @@ function App() {
       </div>
       {page === "dashboard" && account && <Dashboard account={account} onLogout={handleLogout} />}
       {page === "Store" && <Store isLoggedIn={!!account} />}
-
+      {page === "debug" && <Debug />}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -430,6 +441,67 @@ function App() {
         theme="dark"
         transition={Slide}
       />
+    </>
+  );
+}
+
+function Debug() {
+  const [resonse, setResponse] = useState(null);
+  function foo() {
+    //delet all markets
+    fetch("http://localhost:8080/api/markets/all", { method: "DELETE", credentials: "include" })
+      .then((response) => response.text())
+      .then((text) => setResponse(text))
+      .catch((err) => console.error("Fetch error:", err));
+  }
+  function foo1() {
+    //add market
+    fetch("http://localhost:8080/api/addMarket", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: "Test Market",
+        tags: ["test"],
+        shares: [
+          { name: "Yes", price: 0.5 },
+          { name: "No", price: 0.5 },
+        ],
+      }),
+    })
+      .then((response) => response.text())
+      .then((text) => setResponse(text))
+      .catch((err) => console.error("Fetch error:", err));
+  }
+  function foo2() {
+    fetch("http://localhost:8080/api/generateMarket", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.text().then((text) => Promise.reject(new Error(text || response.statusText)));
+        }
+        return response.text();
+      })
+      .then((text) => setResponse(text))
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setResponse(`Error: ${err.message}`);
+      });
+  }
+  return (
+    <>
+      <div className="page">
+        <div className="profile">Debug Page</div>
+      </div>
+      <button onClick={() => foo()}>delete</button>
+      <button onClick={() => foo1()}>add</button>
+      <button onClick={() => foo2()}>e</button>
+
+      <div>Debug response: </div>
+      <div>{resonse}</div>
     </>
   );
 }

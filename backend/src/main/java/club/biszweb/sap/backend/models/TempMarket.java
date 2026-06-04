@@ -1,6 +1,8 @@
 package club.biszweb.sap.backend.models;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +24,8 @@ public class TempMarket extends Market {
     super();
     this.targetDate = targetDate;
     this.prediction = prediction;
-    this.title = "temperature of " + targetDate;
-
+    this.title = "temperature of " + targetDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG));
+    this.tags = List.of("weather", "daily", "temperature");
     List<Share> tempShares = new ArrayList<>();
     tempShares.add(new Share("higher than " + prediction, 0.5, this));
     tempShares.add(new Share("lower than " + prediction, 0.5, this));

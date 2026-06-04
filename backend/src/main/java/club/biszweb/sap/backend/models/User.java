@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -27,16 +28,14 @@ public class User {
   @Enumerated(EnumType.STRING)
   private Role role;
 
+  @Column(columnDefinition = "float default 0.0")
   private double balance;
 
   @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Position> positions = new ArrayList<>();
 
+  @Column(columnDefinition = "boolean default true")
   private boolean enabled = true;
-
-  @ManyToOne
-  @JoinColumn(name = "invitation_key_id")
-  private InvitationKey invitationKey;
 
   public User() {
   }
@@ -104,14 +103,6 @@ public class User {
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
-  }
-
-  public InvitationKey getInvitationKey() {
-    return invitationKey;
-  }
-
-  public void setInvitationKey(InvitationKey invitationKey) {
-    this.invitationKey = invitationKey;
   }
 
   public List<Position> getPositions() {

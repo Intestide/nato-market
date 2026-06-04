@@ -12,16 +12,16 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import club.biszweb.sap.backend.models.InvitationKey;
 import club.biszweb.sap.backend.models.Role;
 import club.biszweb.sap.backend.models.User;
 import club.biszweb.sap.backend.repositories.UserRepository;
-import club.biszweb.sap.backend.services.InvitationKeyService;
 
 @RestController
 @RequestMapping("/api")
@@ -32,9 +32,6 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private InvitationKeyService invitationKeyService;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -48,7 +45,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request, HttpServletRequest servletRequest) {
         String username = request.get("username");
         String password = request.get("password");
 
@@ -60,6 +57,13 @@ public class AuthController {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password));
             SecurityContextHolder.getContext().setAuthentication(auth);
+
+            // Ensure a session is created and the security context is stored so subsequent
+            // requests using the same session are authenticated.
+            servletRequest.getSession(true)
+                    .setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                            SecurityContextHolder.getContext());
+
             return ResponseEntity.ok(Map.of(
                     "message", "Login successful",
                     "username", username));
@@ -69,8 +73,12 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    public ResponseEntity<?> logout(HttpServletRequest request) {
         SecurityContextHolder.clearContext();
+        var session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
         return ResponseEntity.ok(Map.of("message", "Logout successful"));
     }
 
@@ -79,16 +87,10 @@ public class AuthController {
         String username = request.get("username");
         String password = request.get("password");
         String email = request.get("email");
-        String invitationKeyCode = request.get("invitationKey");
 
-        if (username == null || password == null || email == null || invitationKeyCode == null) {
+        if (username == null || password == null || email == null) {
             return ResponseEntity.badRequest()
-                    .body("Username, password, email, and invitation key are required");
-        }
-
-        if (!invitationKeyService.isKeyValid(invitationKeyCode)) {
-            return ResponseEntity.badRequest()
-                    .body("Invalid or already used invitation key");
+                    .body("Username, password, and email are required");
         }
 
         if (userRepository.findByUsername(username).isPresent()) {
@@ -100,67 +102,7 @@ public class AuthController {
         user.setBalance(0);
         user = userRepository.save(user);
 
-        if (!invitationKeyService.validateAndUseKey(invitationKeyCode, user)) {
-            return ResponseEntity.badRequest().body("Invalid or already used invitation key");
-        }
-
         return ResponseEntity.ok("Signup successful! You can now login.");
     }
 
-    /**
-     * Generate a new invitation key (admin only)
-     */
-    @PostMapping("/admin/generate-key")
-    public ResponseEntity<?> generateKey(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).body("Unauthorized");
-        }
-
-        User admin = userRepository.findByUsername(principal.getName()).orElse(null);
-        if (admin == null || !admin.getRole().equals(Role.ADMIN)) {
-            return ResponseEntity.status(403).body("Only admins can generate keys");
-        }
-
-        InvitationKey key = invitationKeyService.generateKey(admin);
-        return ResponseEntity.ok(Map.of(
-                "keyCode", key.getKeyCode(),
-                "id", key.getId(),
-                "createdAt", key.getCreatedAt().toString()));
-    }
-
-    @PostMapping("/generate-referral-key")
-    public ResponseEntity<?> generateReferralKey(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).body("Unauthorized");
-        }
-
-        User user = userRepository.findByUsername(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.status(401).body("User not found");
-        }
-
-        InvitationKey key = invitationKeyService.generateReferralKey(user);
-        return ResponseEntity.ok(Map.of(
-                "keyCode", key.getKeyCode(),
-                "id", key.getId(),
-                "createdAt", key.getCreatedAt().toString()));
-    }
-
-    /**
-     * Get all referral keys for the current user
-     */
-    @GetMapping("/my-referral-keys")
-    public ResponseEntity<?> getMyReferralKeys(Principal principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).body("Unauthorized");
-        }
-
-        User user = userRepository.findByUsername(principal.getName()).orElse(null);
-        if (user == null) {
-            return ResponseEntity.status(401).body("User not found");
-        }
-
-        var keys = invitationKeyService.getReferralKeysByUser(user);
-        return ResponseEntity.ok(keys);
-    }
 }

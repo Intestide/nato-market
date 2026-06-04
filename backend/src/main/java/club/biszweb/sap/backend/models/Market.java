@@ -1,6 +1,7 @@
 package club.biszweb.sap.backend.models;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.ElementCollection;
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "market_type")
+@DiscriminatorColumn(name = "market_type", columnDefinition = "varchar(31) default 'BASE'")
 @DiscriminatorValue("BASE")
 public class Market implements Resolver {
   @Id
@@ -28,8 +29,9 @@ public class Market implements Resolver {
   protected String title;
 
   @ElementCollection(fetch = FetchType.EAGER)
-  private List<String> tags = new ArrayList<>();
+  protected List<String> tags = new ArrayList<>();
 
+  @Column(columnDefinition = "boolean default false")
   private boolean resolved = false;
 
   @OneToMany(mappedBy = "market", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -41,7 +43,7 @@ public class Market implements Resolver {
     this.title = title;
     this.shares = new ArrayList<>();
     this.shares.add(new Share("yes", share1, this));
-    this.shares.add(new Share("no", share2, this));
+    this.shares.add(new Share("no", share2, this)); 
   }
 
   public Market(String title, List<Share> shares) {
