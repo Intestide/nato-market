@@ -37,11 +37,17 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @GetMapping("/user")
-    public ResponseEntity<Map<String, String>> user(Principal principal) {
+    public ResponseEntity<Map<String, Object>> user(Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(401).build();
         }
-        return ResponseEntity.ok(Map.of("name", principal.getName()));
+        var user = userRepository.findByUsername(principal.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(Map.of(
+                "id", user.getId(),
+                "name", principal.getName()));
     }
 
     @PostMapping("/login")

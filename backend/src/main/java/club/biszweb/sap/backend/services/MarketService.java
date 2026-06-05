@@ -3,6 +3,7 @@ package club.biszweb.sap.backend.services;
 import jakarta.transaction.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,9 +12,9 @@ import club.biszweb.sap.backend.models.Market;
 import club.biszweb.sap.backend.models.Position;
 import club.biszweb.sap.backend.models.Share;
 import club.biszweb.sap.backend.models.TempMarket;
-import club.biszweb.sap.backend.models.User;
 import club.biszweb.sap.backend.repositories.MarketRepository;
 import club.biszweb.sap.backend.repositories.PositionRepository;
+import club.biszweb.sap.backend.models.User;
 import club.biszweb.sap.backend.repositories.UserRepository;
 
 @Service
@@ -28,6 +29,9 @@ public class MarketService {
 
   @Autowired
   private PositionRepository positionRepository;
+
+  @Autowired
+  private WeatherService weatherService;
 
   public void buyShares(Long userId, long marketId, long shareId, int quantity) {
     if (quantity <= 0) {
@@ -122,8 +126,10 @@ public class MarketService {
 
 
   public Market generateMarket(){
-    
-    Market m1 = new TempMarket(LocalDate.now().plusDays(1),1);
+    int prediction = weatherService.getPredictionTemp();
+    Market m1 = new TempMarket(LocalDate.now().plusDays(1),prediction);
     return m1;
   }
+
+
 }

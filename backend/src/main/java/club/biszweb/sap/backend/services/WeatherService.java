@@ -1,23 +1,17 @@
 package club.biszweb.sap.backend.services;
 
-import java.util.Optional;
-
 import club.biszweb.sap.backend.dto.WeatherDTO;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-public class   WeatherService {
+public class WeatherService {
 
-	private final RestClient restClient;
+	private final RestTemplate restTemplate = new RestTemplate();
 
-	public WeatherService(RestClient.Builder restClientBuilder) {
-		this.restClient = restClientBuilder.baseUrl("https://open-meteo.com").build();
-	}
-
-	public Optional<TomorrowTemperature> getTomorrowTemperatureRange() {
-		String uri = UriComponentsBuilder.fromPath("/forecast")
+	public int getPredictionTemp() {
+		String uri = UriComponentsBuilder.fromUriString("https://api.open-meteo.com/v1/forecast")
 				.queryParam("latitude", 22.5431)
 				.queryParam("longitude", 114.0579)
 				.queryParam("daily", "temperature_2m_max,temperature_2m_min")
@@ -25,24 +19,32 @@ public class   WeatherService {
 				.queryParam("timezone", "Asia/Singapore")
 				.toUriString();
 
-		WeatherDTO response = restClient.get()
-				.uri(uri)
-				.retrieve()
-				.body(WeatherDTO.class);
+		WeatherDTO response = restTemplate.getForObject(uri, WeatherDTO.class);
 
 		if (response != null && response.daily().time().size() >= 2) {
 			Double maxTemp = response.daily().temperature2mMax().get(1);
 			Double minTemp = response.daily().temperature2mMin().get(1);
 
 			if (maxTemp != null && minTemp != null) {
-				return Optional.of(new TomorrowTemperature(
-					(int) Math.round(maxTemp),
-					(int) Math.round(minTemp)));
+				return (int) Math.round((maxTemp + minTemp) / 2);
 			}
 		}
 
-		return Optional.empty();
+		return -1;
 	}
 
-	public static record TomorrowTemperature(int maxTemp, int minTemp) {}
+
+	//new
+	public double getActual() {
+		String uri = UriComponentsBuilder.fromUriString("https://api.open-meteo.com/v1/forecast")
+				.queryParam("latitude", 22.5431)
+				.queryParam("longitude", 114.0579)
+				.queryParam("daily", "temperature_2m_max,temperature_2m_min")
+				.queryParam("forecast_days", 0)
+				.queryParam("timezone", "Asia/Singapore")
+				.toUriString();
+
+		WeatherDTO response = restTemplate.getForObject(uri, WeatherDTO.class);
+		return response.current().temperature2m();
+	}
 }

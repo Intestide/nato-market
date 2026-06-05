@@ -87,8 +87,8 @@ function Dashboard({ account, onLogout }) {
   return (
     <>
       <div className="page">
-        <div className="pofile" style={{display: "flex", flexDirection:"row"}}>
-          <div className="subtitle" style={{flex : 1}}>
+        <div className="pofile" style={{ display: "flex", flexDirection: "row" }}>
+          <div className="subtitle" style={{ flex: 1 }}>
             Profile
           </div>
           <button className="btn" onClick={onLogout} style={{ marginRight: "20px" }}>
@@ -96,15 +96,13 @@ function Dashboard({ account, onLogout }) {
           </button>
         </div>
         <div className="bets">Welcome back, {account.name}.</div>
-        <div>
-
-        </div>
+        <div></div>
       </div>
     </>
   );
 }
 
-function Store({ isLoggedIn }) {
+function Store({ account, isLoggedIn }) {
   const [id, setId] = useState(null);
   const [data, setData] = useState([]);
 
@@ -118,7 +116,7 @@ function Store({ isLoggedIn }) {
   return (
     <>
       <div className="page">
-        {id !== null && <Market market={data.find((item) => item.id === id)} onClose={() => setId(null)} isLoggedIn={isLoggedIn} />}
+        {id !== null && <Market market={data.find((item) => item.id === id)} onClose={() => setId(null)} account={account} isLoggedIn={isLoggedIn} />}
         <div className="subtitle">All Markets</div>
         <div style={{ margin: "20px", display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "20px" }}>
           {data ? (
@@ -149,10 +147,10 @@ function Preview({ title, open, market }) {
             </div>
             <div style={{ display: "flex", flexDirection: "row" }}>
               <div className="option" style={{ backgroundColor: "#4CC790" }}>
-                Yes
+                {market.shares[0].name}
               </div>
               <div className="option" style={{ backgroundColor: "#c74c4c" }}>
-                No
+                {market.shares[1].name}
               </div>
             </div>
           </>
@@ -210,10 +208,7 @@ function Graph({ value }) {
   );
 }
 
-function Market({ market, onClose, isLoggedIn }) {
-  useEffect(() => {
-    console.log(market);
-  });
+function Market({ market, onClose, isLoggedIn, account }) {
   return (
     <>
       <div className="market">
@@ -253,9 +248,31 @@ function Market({ market, onClose, isLoggedIn }) {
 
 function Trade({ isLoggedIn, market }) {
   const [tradeMode, setMode] = useState(true);
+  const [subtotal, setSubtotal] = useState(0);
+  const [values, setValues] = useState(market.shares.map(() => 0));
   // if (!isLoggedIn) {
   //   return <div>Please login to trade.</div>;
   // }
+  function calculate() {
+    setSubtotal(values.reduce((acc, val, idx) => acc + val * market.shares[idx].price * (tradeMode ? 1 : -1), 0));
+  }
+  function processTrade() {
+    if (!isLoggedIn) {
+      alert("Please login before placing a trade.");
+      return;
+    }
+
+    fetch("http://localhost:8080/api/trade", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        marketId: market.id,
+        tradeMode,
+        trades: market.shares.map((share, i) => ({ shareId: share.id, quantity: values[i] })),
+      }),
+    });
+  }
   return (
     <>
       <div className="trade-wrapper">
@@ -267,27 +284,36 @@ function Trade({ isLoggedIn, market }) {
             Sell
           </button>
         </div>
-        <div className="calculator" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+        <div className="calculator" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem", minWidth: "30vw" }}>
           {market.shares.map((share) => (
             <div key={share.id} className="share" style={{ display: "flex", flexDirection: "row", gap: "0.5rem" }}>
               <div
                 style={{
-                  width: "100%",
+                  // width: "50%",
                   fontSize: "20px",
-                  paddingTop: "0.5rem",
-                  paddingBottom: "0.5rem",
+                  padding: "0.5rem 1rem",
                   borderRadius: "0.5rem",
                   textAlign: "center",
                   borderColor: "#2563EB",
                   color: "#ffffff",
                   backgroundColor: "#3B82F6",
+                  whiteSpace: "nowrap",
+                  flex: "1 0 40%",
                 }}>
                 {share.name}
               </div>
-              <input type="number" placeholder="Amount" />
+              <input className="trade-input" type="number" placeholder="Amount" style={{ flex: "1 0 60%" }} value={values[market.shares.indexOf(share)]} onChange={(e) => {
+                const newValues = [...values];
+                newValues[market.shares.indexOf(share)] = parseFloat(e.target.value) || 0;
+                setValues(newValues);
+                calculate()
+              }} />
             </div>
           ))}
+          <hr />
+          <div>subtotal: ${subtotal.toFixed(2)}</div>
         </div>
+        <input type="button" value="Submit" onClick={() => processTrade()} />
       </div>
     </>
   );
@@ -373,7 +399,7 @@ function App() {
           return;
         }
         const user = await response.json();
-        console.log(user);
+        // console.log(user);
         setAccount(user);
       } catch (error) {
         console.error("Failed to check auth:", error);
@@ -426,7 +452,7 @@ function App() {
         </button>
       </div>
       {page === "dashboard" && account && <Dashboard account={account} onLogout={handleLogout} />}
-      {page === "Store" && <Store isLoggedIn={!!account} />}
+      {page === "Store" && <Store account={account} isLoggedIn={!!account} />}
       {page === "debug" && <Debug />}
       <ToastContainer
         position="top-right"
@@ -474,11 +500,7 @@ function Debug() {
       .catch((err) => console.error("Fetch error:", err));
   }
   function foo2() {
-    fetch("http://localhost:8080/api/generateMarket", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    })
+    fetch("http://localhost:8080/api/generateMarket", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" } })
       .then((response) => {
         if (!response.ok) {
           return response.text().then((text) => Promise.reject(new Error(text || response.statusText)));
@@ -491,6 +513,12 @@ function Debug() {
         setResponse(`Error: ${err.message}`);
       });
   }
+  function foo3() {
+    fetch("http://localhost:8080/api/wow", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ balance: 1000 }) })
+      .then((response) => response.text())
+      .then((text) => setResponse(text))
+      .catch((err) => console.error("Fetch error:", err));
+  }
   return (
     <>
       <div className="page">
@@ -499,7 +527,7 @@ function Debug() {
       <button onClick={() => foo()}>delete</button>
       <button onClick={() => foo1()}>add</button>
       <button onClick={() => foo2()}>e</button>
-
+      <button onClick={() => foo3()}>weather thing</button>
       <div>Debug response: </div>
       <div>{resonse}</div>
     </>

@@ -3,6 +3,8 @@ package club.biszweb.sap.backend.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import club.biszweb.sap.backend.models.Position;
+import club.biszweb.sap.backend.models.Role;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

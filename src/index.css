@@ -128,3 +128,9 @@ input,button{
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-h);
 }
+
+hr {
+  width: 100%;
+  border: none;
+  border-top: 1.5px solid var(--text);
+}

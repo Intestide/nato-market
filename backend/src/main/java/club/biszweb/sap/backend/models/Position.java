@@ -1,5 +1,6 @@
 package club.biszweb.sap.backend.models;
 
+import club.biszweb.sap.backend.models.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -74,4 +75,6 @@ public class Position {
   public void setOwner(User owner) {
     this.owner = owner;
   }
+
+
 }

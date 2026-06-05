@@ -1,5 +1,6 @@
 package club.biszweb.sap.backend.controllers;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,21 +17,32 @@ import org.springframework.web.bind.annotation.RestController;
 
 import club.biszweb.sap.backend.models.Market;
 import club.biszweb.sap.backend.repositories.MarketRepository;
+import club.biszweb.sap.backend.repositories.UserRepository;
 import club.biszweb.sap.backend.services.MarketService;
+import club.biszweb.sap.backend.services.WeatherService;
 import club.biszweb.sap.backend.dto.MarketDTO;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api")
 public class Controller {
 
-  MarketService marketService = new MarketService();
+  @Autowired
+  private MarketService marketService;
+
+  @Autowired
+  private WeatherService weatherService;
 
   @Autowired
   private MarketRepository repository;
 
-  @GetMapping("/markets/test")
-  public String thing() {
-    return "Hello World!";
+  @Autowired
+  private UserRepository userRepository;
+
+  @GetMapping("/test")
+  public int thing() {
+    return weatherService.getPredictionTemp();
   }
 
   @GetMapping("/markets")
@@ -54,12 +66,56 @@ public class Controller {
     Market saved = repository.save(newMarket);
     return MarketDTO.from(saved);
   }
-  
+
+
   @PostMapping("/generateMarket")
   public ResponseEntity addSystemMarket() {
     Market automaticMarket = marketService.generateMarket();
     repository.save(automaticMarket);
     return ResponseEntity.ok("added.");
+  }
+  @PostMapping("/trade")
+  public ResponseEntity<String> trade(@RequestBody Map<String, Object> request, Principal principal) {
+    if (principal == null) {
+      return ResponseEntity.status(401).body("Not authenticated");
+    }
+    var user = userRepository.findByUsername(principal.getName()).orElse(null);
+    if (user == null) {
+      return ResponseEntity.status(401).body("User not found");
+    }
+    Long userId = user.getId();
+    boolean tradeMode = (boolean) request.get("tradeMode");
+    Long marketId = ((Number) request.get("marketId")).longValue();
+    List<Map<String, Object>> trades = (List<Map<String, Object>>) request.get("trades");
+    try {
+      for (Map<String, Object> trade : trades) {
+        Long shareId = ((Number) trade.get("shareId")).longValue();
+        int quantity = ((Number) trade.get("quantity")).intValue();
+        if (tradeMode) {
+          marketService.buyShares(userId, marketId, shareId, quantity);
+        } else  {
+          marketService.sellShares(userId, marketId, shareId, quantity);
+        }
+      }
+    } catch (RuntimeException e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
+    }
+    return ResponseEntity.ok("Traded successfully. ");
+  }
+  //debug set balance - only for authenticated user's own account
+  @PostMapping("/wow")
+  public ResponseEntity<String> setBalance(@RequestBody Map<String, Object> request, Principal principal) {
+      if (principal == null) {
+          return ResponseEntity.status(401).body("Not authenticated");
+      }
+      var user = userRepository.findByUsername(principal.getName()).orElse(null);
+      if (user == null) {
+          return ResponseEntity.status(401).body("User not found");
+      }
+      int balance = ((Number) request.get("balance")).intValue();
+      user.setBalance(balance);
+      userRepository.save(user);
+      return ResponseEntity.ok("rich.");
   }
 
   @PostMapping("/markets/{id}/tags")
@@ -80,8 +136,19 @@ public class Controller {
     }).orElseGet(() -> ResponseEntity.notFound().build());
   }
   
+
+  
+
   @DeleteMapping("/markets/all")
-  public ResponseEntity<String> clearDatabase() {
+  public ResponseEntity<String> clearDatabase(Principal principal) {
+    // Only allow authenticated admins to clear the database
+    if (principal == null) {
+      return ResponseEntity.status(401).body("Not authenticated");
+    }
+    var user = userRepository.findByUsername(principal.getName()).orElse(null);
+    if (user == null || !user.getRole().toString().equals("ADMIN")) {
+      return ResponseEntity.status(403).body("Admin access required");
+    }
     repository.deleteAll();
     return ResponseEntity.ok("dead.");
   }
